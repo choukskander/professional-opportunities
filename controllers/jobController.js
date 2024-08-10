@@ -21,13 +21,30 @@ exports.getJobs = async (req, res) => {
   res.json(jobs);
 };
 
-exports.getJobById = async (req, res) => {
-  const job = await Job.findById(req.params.id);
+// exports.getJobById = async (req, res) => {
+//   const job = await Job.findById(req.params.id);
 
-  if (job) {
+//   if (job) {
+//     res.json(job);
+//   } else {
+//     res.status(404).json({ message: 'Job not found' });
+//   }
+// };
+exports.getJobById = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id); // No need to check for null here 
+
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
     res.json(job);
-  } else {
-    res.status(404).json({ message: 'Job not found' });
+  } catch (error) {
+    console.error(error);
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid job ID' }); // Handle invalid ObjectId specifically
+    }
+    res.status(500).json({ message: 'Error getting job' });
   }
 };
 

@@ -7,7 +7,7 @@ const generateToken = (id) => {
 
 exports.registerUser = async (req, res) => {
   const { name, email, password, role, skills, experience } = req.body;
-
+  console.log("Received registration data:", req.body);
   const userExists = await User.findOne({ email });
 
   if (userExists) {
@@ -49,28 +49,38 @@ exports.loginUser = async (req, res) => {
 };
 
 exports.updateUserProfile = async (req, res) => {
-  const user = await User.findById(req.user._id);
+  try {
+    const user = await User.findById(req.user._id); 
 
-  if (user) {
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
-    user.skills = req.body.skills || user.skills;
-    user.experience = req.body.experience || user.experience;
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.email = req.body.email || user.email;
+      user.skills = req.body.skills || user.skills;
+      user.experience = req.body.experience || user.experience;
 
-    if (req.body.password) {
-      user.password = req.body.password;
+      // Add role update logic here
+      if (req.body.role) { 
+        user.role = req.body.role;
+      }
+
+      if (req.body.password) {
+        user.password = req.body.password;
+      }
+
+      const updatedUser = await user.save();
+
+      res.json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role, // Include role in the response
+        token: generateToken(updatedUser._id),
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
     }
-
-    const updatedUser = await user.save();
-
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      role: updatedUser.role,
-      token: generateToken(updatedUser._id),
-    });
-  } else {
-    res.status(404).json({ message: 'User not found' });
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    res.status(500).json({ message: 'Error updating user profile' });
   }
 };
