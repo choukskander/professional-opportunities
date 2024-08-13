@@ -1,5 +1,13 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const cloudinary = require('cloudinary').v2;
+require('dotenv').config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -47,10 +55,9 @@ exports.loginUser = async (req, res) => {
     res.status(401).json({ message: 'Invalid email or password' });
   }
 };
-
 exports.updateUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id); 
+    const user = await User.findById(req.user._id);
 
     if (user) {
       user.name = req.body.name || user.name;
@@ -58,13 +65,19 @@ exports.updateUserProfile = async (req, res) => {
       user.skills = req.body.skills || user.skills;
       user.experience = req.body.experience || user.experience;
 
-      // Add role update logic here
-      if (req.body.role) { 
+      if (req.body.role) {
         user.role = req.body.role;
       }
 
       if (req.body.password) {
         user.password = req.body.password;
+      }
+
+      // Upload image to Cloudinary
+      if (req.files && req.files.profileImage) {
+        // Access the uploaded file correctly
+        const result = await cloudinary.uploader.upload(req.files.profileImage.tempFilePath); 
+        user.profileImage = result.secure_url;
       }
 
       const updatedUser = await user.save();
@@ -73,8 +86,9 @@ exports.updateUserProfile = async (req, res) => {
         _id: updatedUser._id,
         name: updatedUser.name,
         email: updatedUser.email,
-        role: updatedUser.role, // Include role in the response
+        role: updatedUser.role,
         token: generateToken(updatedUser._id),
+        profileImage: updatedUser.profileImage 
       });
     } else {
       res.status(404).json({ message: 'User not found' });
