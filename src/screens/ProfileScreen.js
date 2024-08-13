@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Alert } from 'react-bootstrap';
+import { Form, Button, Alert, Row, Col, Image, Card } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import FormContainer from '../components/FormContainer';
-import axios from 'axios'; // Import axios for making API calls
-import { useNavigate } from 'react-router-dom'; 
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const ProfileScreen = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState(''); // Add role state
+  const [role, setRole] = useState('');
   const [message, setMessage] = useState(null);
+  const [profileImage, setProfileImage] = useState(null); // Image state
+  const [skills, setSkills] = useState([]);
+  const [experience, setExperience] = useState('');
 
   const dispatch = useDispatch();
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
-  const navigate = useNavigate(); // Use useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!userInfo) {
@@ -40,8 +43,11 @@ const ProfileScreen = () => {
 
           setName(data.name);
           setEmail(data.email);
-          setRole(data.role); // Set role state
-          setMessage(null); // Clear the message state
+          setRole(data.role);
+          setSkills(data.skills);
+          setExperience(data.experience);
+          setProfileImage(data.profileImage); // Set profile image
+          setMessage(null);
         } catch (error) {
           console.error('Error fetching user details:', error);
           setMessage('Error fetching user details. Please try again.');
@@ -56,100 +62,161 @@ const ProfileScreen = () => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setMessage('Passwords do not match');
-      return; // Stop execution if passwords don't match
+      return;
     } else {
       try {
         const config = {
           headers: {
             Authorization: `Bearer ${userInfo.token}`,
+            'Content-Type': 'multipart/form-data',
           },
         };
 
+        // Create FormData for the image upload
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('password', password);
+        formData.append('role', role);
+        formData.append('skills', skills.join(','));
+        formData.append('experience', experience);
+        if (profileImage && profileImage instanceof File) { 
+          formData.append('profileImage', profileImage, profileImage.name);
+        } 
+
         const { data } = await axios.put(
           `http://localhost:5000/api/users/profile`,
-          { name, email, password, role }, 
+          formData,
           config
         );
 
-        // Set a success message with green color
-        setMessage({ 
-          variant: 'success',  
-          message: 'Profile Updated'
-        }); 
+        setMessage({
+          variant: 'success',
+          message: 'Profile Updated',
+        });
 
         console.log('Profile Updated Successfully:', data);
+        // Update the profile image in the UI after success
+        setProfileImage(data.profileImage);
       } catch (error) {
         console.error('Error updating profile:', error);
-        // Set an error message with red color
-        setMessage({ 
-          variant: 'danger', 
-          message: 'Error updating profile. Please try again.'
+        setMessage({
+          variant: 'danger',
+          message: 'Error updating profile. Please try again.',
         });
       }
     }
   };
 
+  const handleImageChange = (e) => {
+    setProfileImage(e.target.files[0]);
+  };
+
+  const handleSkillsChange = (e) => {
+    const newSkills = e.target.value.split(','); // Split skills by comma
+    setSkills(newSkills);
+  };
+
   return (
     <FormContainer>
       <h2>User Profile</h2>
-      
+
       {message && (
-        <Alert variant={message.variant}> {message.message} </Alert>
+        <Alert variant={message.variant}>{message.message}</Alert>
       )}
       <Form onSubmit={submitHandler}>
-        <Form.Group controlId="name">
-          <Form.Label>Name</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Enter name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          ></Form.Control>
-        </Form.Group>
+        <Row>
+          <Col md={4}>
+            <Card>
+              <Card.Body>
+                {profileImage ? (
+                  <Image src={(profileImage)} roundedCircle width="150" height="150" />
+                ) : (
+                  <Image src="/placeholder-profile-image.jpg" roundedCircle width="150" height="150" />
+                )}
+                <Form.Group controlId="profileImage" className="mt-3">
+                  <Form.Label>Profile Picture</Form.Label>
+                  <Form.Control type="file" accept="image/*" onChange={handleImageChange} />
+                </Form.Group>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={8}>
+            <Form.Group controlId="name">
+              <Form.Label>Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              ></Form.Control>
+            </Form.Group>
 
-        <Form.Group controlId="email">
-          <Form.Label>Email Address</Form.Label>
-          <Form.Control
-            type="email"
-            placeholder="Enter email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          ></Form.Control>
-        </Form.Group>
-        <Form.Group controlId="role">
-          <Form.Label>Role</Form.Label>
-          <Form.Select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="jobSeeker">Job Seeker</option>
-            <option value="hr">HR</option>
-          </Form.Select>
-        </Form.Group> 
+            <Form.Group controlId="email">
+              <Form.Label>Email Address</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="Enter email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              ></Form.Control>
+            </Form.Group>
+            <Form.Group controlId="role">
+              <Form.Label>Role</Form.Label>
+              <Form.Select value={role} onChange={(e) => setRole(e.target.value)}>
+                <option value="jobSeeker">Job Seeker</option>
+                <option value="hr">HR</option>
+              </Form.Select>
+            </Form.Group>
 
-        <Form.Group controlId="password">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          ></Form.Control>
-        </Form.Group>
+            <Form.Group controlId="skills">
+              <Form.Label>Skills</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter skills (comma-separated)"
+                value={skills.join(',')}
+                onChange={handleSkillsChange}
+              />
+            </Form.Group>
 
-        <Form.Group controlId="confirmPassword">
-          <Form.Label>Confirm Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Confirm password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          ></Form.Control>
-        </Form.Group>
+            <Form.Group controlId="experience">
+              <Form.Label>Experience</Form.Label>
+              <Form.Control
+                as="textarea"
+                placeholder="Enter your work experience"
+                value={experience}
+                onChange={(e) => setExperience(e.target.value)}
+              />
+            </Form.Group>
 
-        <Button type="submit" variant="primary">
-          Update
-        </Button>
+            <Form.Group controlId="password">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              ></Form.Control>
+            </Form.Group>
+
+            <Form.Group controlId="confirmPassword">
+              <Form.Label>Confirm Password</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              ></Form.Control>
+            </Form.Group>
+
+            <Button type="submit" variant="primary">
+              Update
+            </Button>
+          </Col>
+        </Row>
       </Form>
     </FormContainer>
   );
 };
 
-export default ProfileScreen; 
+export default ProfileScreen;
