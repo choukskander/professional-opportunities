@@ -62,9 +62,8 @@ exports.updateUserProfile = async (req, res) => {
     if (user) {
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
-      user.skills = req.body.skills || user.skills;
-      user.experience = req.body.experience || user.experience;
-
+      user.skills = req.body.skills ? JSON.parse(req.body.skills) : user.skills;
+      user.experience = req.body.experience ? JSON.parse(req.body.experience) : user.experience; 
       if (req.body.role) {
         user.role = req.body.role;
       }
@@ -73,12 +72,19 @@ exports.updateUserProfile = async (req, res) => {
         user.password = req.body.password;
       }
 
-      // Upload image to Cloudinary
+      //Upload image to Cloudinary
       if (req.files && req.files.profileImage) {
-        // Access the uploaded file correctly
-        const result = await cloudinary.uploader.upload(req.files.profileImage.tempFilePath); 
-        user.profileImage = result.secure_url;
+        const profileImage = req.files.profileImage;
+        
+        // Assurez-vous que le chemin temporaire est disponible
+        if (profileImage.tempFilePath) {
+          const result = await cloudinary.uploader.upload(profileImage.tempFilePath);
+          user.profileImage = result.secure_url;
+        } else {
+          throw new Error('No temporary file path available for the uploaded image.');
+        }
       }
+      
 
       const updatedUser = await user.save();
 
@@ -88,7 +94,9 @@ exports.updateUserProfile = async (req, res) => {
         email: updatedUser.email,
         role: updatedUser.role,
         token: generateToken(updatedUser._id),
-        profileImage: updatedUser.profileImage 
+        profileImage: updatedUser.profileImage ,
+        skills: updatedUser.skills,
+        experience: updatedUser.experience
       });
     } else {
       res.status(404).json({ message: 'User not found' });

@@ -23,7 +23,13 @@ app.use(cors());
 app.use(express.json());
 
 // Enable file uploads
-app.use(fileUpload()); 
+app.use(fileUpload({
+  useTempFiles: true,          // Utiliser des fichiers temporaires pour gérer les téléchargements
+  tempFileDir: '/tmp/',        // Répertoire pour les fichiers temporaires
+  createParentPath: true,      // Créer le répertoire parent si nécessaire
+  limits: { fileSize: 50 * 1024 * 1024 }, // Limite de taille de fichier (50MB dans cet exemple)
+}));
+ 
 
 app.use('/api/users', userRoutes);
 app.use('/api/jobs', jobRoutes);

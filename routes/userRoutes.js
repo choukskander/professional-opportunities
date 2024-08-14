@@ -1,7 +1,7 @@
 const express = require('express');
 const { registerUser, loginUser, updateUserProfile } = require('../controllers/userController');
-const { protect } = require('../middleware/authMiddleware');
-const User = require('../models/User'); // Import the User model here
+const { protect, hrProtect } = require('../middleware/authMiddleware');
+const User = require('../models/User');
 
 const router = express.Router();
 
@@ -33,7 +33,11 @@ router.put('/profile', protect, async (req, res) => {
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
       user.skills = req.body.skills || user.skills;
-      user.experience = req.body.experience || user.experience;
+      // Update experience (assuming you send an array of experience objects)
+      user.experience = req.body.experience ? JSON.parse(req.body.experience) : user.experience; 
+      if (req.body.role) {
+        user.role = req.body.role;
+      }
 
       if (req.body.password) {
         user.password = req.body.password;
@@ -47,6 +51,9 @@ router.put('/profile', protect, async (req, res) => {
         email: updatedUser.email,
         role: updatedUser.role,
         token: generateToken(updatedUser._id),
+        profileImage: updatedUser.profileImage,
+        skills: updatedUser.skills,
+        experience: updatedUser.experience
       });
     } else {
       res.status(404).json({ message: 'User not found' });
@@ -54,6 +61,20 @@ router.put('/profile', protect, async (req, res) => {
   } catch (error) {
     console.error('Error updating user profile:', error);
     res.status(500).json({ message: 'Error updating user profile' });
+  }
+});
+// New route for HR to view user profiles
+router.get('/view/:id', protect, hrProtect, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ message: 'Error fetching user data' });
   }
 });
 

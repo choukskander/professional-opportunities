@@ -28,3 +28,4 @@ exports.hrProtect = (req, res, next) => {
     res.status(401).json({ message: 'Not authorized as an HR' });
   }
 };
+
