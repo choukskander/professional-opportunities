@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Alert, Row, Col, Image, Card } from 'react-bootstrap';
+import { Form, Button, Alert, Row, Col, Image, Card, Container, FormControl } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import FormContainer from '../components/FormContainer';
 import axios from 'axios';
@@ -12,9 +12,11 @@ const ProfileScreen = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState('');
   const [message, setMessage] = useState(null);
-  const [profileImage, setProfileImage] = useState(null); // Image state
+  const [profileImage, setProfileImage] = useState(null);
   const [skills, setSkills] = useState([]);
-  const [experience, setExperience] = useState('');
+  const [experienceEntries, setExperienceEntries] = useState([
+    { title: '', company: '', location: '', startDate: '', endDate: '', description: '' },
+  ]);
 
   const dispatch = useDispatch();
 
@@ -27,7 +29,6 @@ const ProfileScreen = () => {
     if (!userInfo) {
       navigate('/login');
     } else {
-      // Fetch user details directly
       const fetchUserDetails = async () => {
         try {
           const config = {
@@ -45,9 +46,10 @@ const ProfileScreen = () => {
           setEmail(data.email);
           setRole(data.role);
           setSkills(data.skills);
-          setExperience(data.experience);
-          setProfileImage(data.profileImage); // Set profile image
-          setMessage(null);
+          setExperienceEntries(data.experience);
+
+          // Check if profileImage is set; if not, set to placeholder
+          setProfileImage(data.profileImage || '/placeholder-profile-image.jpg');
         } catch (error) {
           console.error('Error fetching user details:', error);
           setMessage('Error fetching user details. Please try again.');
@@ -72,17 +74,17 @@ const ProfileScreen = () => {
           },
         };
 
-        // Create FormData for the image upload
         const formData = new FormData();
         formData.append('name', name);
         formData.append('email', email);
         formData.append('password', password);
         formData.append('role', role);
-        formData.append('skills', skills.join(','));
-        formData.append('experience', experience);
-        if (profileImage && profileImage instanceof File) { 
+        formData.append('skills', JSON.stringify(skills)); // Just JSON stringify the array directly
+        formData.append('experience', JSON.stringify(experienceEntries));
+
+        if (profileImage && profileImage instanceof File) {
           formData.append('profileImage', profileImage, profileImage.name);
-        } 
+        }
 
         const { data } = await axios.put(
           `http://localhost:5000/api/users/profile`,
@@ -95,9 +97,7 @@ const ProfileScreen = () => {
           message: 'Profile Updated',
         });
 
-        console.log('Profile Updated Successfully:', data);
-        // Update the profile image in the UI after success
-        setProfileImage(data.profileImage);
+        setProfileImage(data.profileImage || '/placeholder-profile-image.jpg');
       } catch (error) {
         console.error('Error updating profile:', error);
         setMessage({
@@ -113,8 +113,28 @@ const ProfileScreen = () => {
   };
 
   const handleSkillsChange = (e) => {
-    const newSkills = e.target.value.split(','); // Split skills by comma
+    const newSkills = e.target.value.split(',').map((skill) => skill.trim()); // Ensure it's an array of strings
     setSkills(newSkills);
+  };
+  
+
+  const addExperienceEntry = () => {
+    setExperienceEntries([
+      ...experienceEntries,
+      { title: '', company: '', location: '', startDate: '', endDate: '', description: '' },
+    ]);
+  };
+
+  const removeExperienceEntry = (index) => {
+    setExperienceEntries(experienceEntries.filter((_, i) => i !== index));
+  };
+
+  const handleExperienceChange = (index, field, value) => {
+    setExperienceEntries(
+      experienceEntries.map((entry, i) =>
+        i === index ? { ...entry, [field]: value } : entry
+      )
+    );
   };
 
   return (
@@ -129,11 +149,16 @@ const ProfileScreen = () => {
           <Col md={4}>
             <Card>
               <Card.Body>
-                {profileImage ? (
-                  <Image src={(profileImage)} roundedCircle width="150" height="150" />
-                ) : (
-                  <Image src="/placeholder-profile-image.jpg" roundedCircle width="150" height="150" />
-                )}
+                <Image
+                  src={
+                    profileImage instanceof File
+                      ? URL.createObjectURL(profileImage)
+                      : profileImage || '/placeholder-profile-image.jpg'
+                  }
+                  roundedCircle
+                  width="150"
+                  height="150"
+                />
                 <Form.Group controlId="profileImage" className="mt-3">
                   <Form.Label>Profile Picture</Form.Label>
                   <Form.Control type="file" accept="image/*" onChange={handleImageChange} />
@@ -174,19 +199,75 @@ const ProfileScreen = () => {
               <Form.Control
                 type="text"
                 placeholder="Enter skills (comma-separated)"
-                value={skills.join(',')}
+                value={skills}
                 onChange={handleSkillsChange}
               />
             </Form.Group>
 
             <Form.Group controlId="experience">
               <Form.Label>Experience</Form.Label>
-              <Form.Control
-                as="textarea"
-                placeholder="Enter your work experience"
-                value={experience}
-                onChange={(e) => setExperience(e.target.value)}
-              />
+              {experienceEntries.map((entry, index) => (
+                <Container key={index}>
+                  <Row>
+                    <Col md={3}>
+                      <Form.Control
+                        type="text"
+                        placeholder="Title"
+                        value={entry.title}
+                        onChange={(e) => handleExperienceChange(index, 'title', e.target.value)}
+                      />
+                    </Col>
+                    <Col md={3}>
+                      <Form.Control
+                        type="text"
+                        placeholder="Company"
+                        value={entry.company}
+                        onChange={(e) => handleExperienceChange(index, 'company', e.target.value)}
+                      />
+                    </Col>
+                    <Col md={3}>
+                      <Form.Control
+                        type="text"
+                        placeholder="Location"
+                        value={entry.location}
+                        onChange={(e) => handleExperienceChange(index, 'location', e.target.value)}
+                      />
+                    </Col>
+                    <Col md={3}>
+                      <Form.Control
+                        type="date"
+                        placeholder="Start Date"
+                        value={entry.startDate}
+                        onChange={(e) => handleExperienceChange(index, 'startDate', e.target.value)}
+                      />
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={3}>
+                      <Form.Control
+                        type="date"
+                        placeholder="End Date"
+                        value={entry.endDate}
+                        onChange={(e) => handleExperienceChange(index, 'endDate', e.target.value)}
+                      />
+                    </Col>
+                    <Col md={9}>
+                      <FormControl
+                        as="textarea"
+                        placeholder="Description"
+                        value={entry.description}
+                        onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
+                      />
+                    </Col>
+                  </Row>
+                  <Button variant="danger" onClick={() => removeExperienceEntry(index)}>
+                    Remove
+                  </Button>{' '}
+                </Container>
+              ))}
+              <Button variant="primary" onClick={addExperienceEntry} className="mt-2">
+                Add Experience
+              </Button>
             </Form.Group>
 
             <Form.Group controlId="password">
@@ -210,7 +291,7 @@ const ProfileScreen = () => {
             </Form.Group>
 
             <Button type="submit" variant="primary">
-              Update
+              Update Profile
             </Button>
           </Col>
         </Row>

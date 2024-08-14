@@ -55,7 +55,7 @@ const Header = () => {
             </Nav>
             {/* Add spacing with a 'me-3' class to the Nav */}
              {/* Search Form */}
-             <Form onSubmit={submitHandler} className="d-flex">
+             <Form onSubmit={submitHandler} className="d-flex me-3"> {/* Add spacing with 'me-3' */}
               <Form.Control
                 type="text"
                 placeholder="Search jobs..."
@@ -67,7 +67,7 @@ const Header = () => {
                 Search
               </Button>
             </Form>
-            <Nav className="me-3"> {/* Add spacing with 'me-3' */}
+            <Nav> 
               {userInfo ? (
                 <NavDropdown title={userInfo.name} id="basic-nav-dropdown">
                   <LinkContainer to="/profile">

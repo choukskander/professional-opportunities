@@ -10,6 +10,8 @@ import ProfileScreen from './screens/ProfileScreen';
 import JobScreen from './screens/JobScreen';
 import JobListScreen from './screens/JobListScreen';
 import JobEditScreen from './screens/JobEditScreen';
+import ProfileViewScreen from './screens/ProfileViewScreen';
+import NotFound from './components/NotFound';
 
 const App = () => {
   return (
@@ -21,10 +23,12 @@ const App = () => {
             <Route path="/login" element={<LoginScreen />} />
             <Route path="/register" element={<RegisterScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />
+            <Route path="/profile/view/:id" element={<ProfileViewScreen />} />
             <Route path="/job/:id/edit" element={<JobEditScreen />} />
             <Route path="/job/:id" element={<JobScreen />} />
             <Route path="/jobs" element={<JobListScreen />} />
             <Route path="/" element={<HomeScreen />} />
+            <Route path="*" element={<NotFound/>} />
           </Routes>
         </Container>
       </main>
