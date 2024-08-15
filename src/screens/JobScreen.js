@@ -3,20 +3,24 @@ import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Row, Col, Card, Button } from 'react-bootstrap';
 import { listJobDetails } from '../actions/jobActions';
+import { useParams } from 'react-router-dom';
 
-const JobScreen = ({ match }) => {
+const JobScreen = () => {
   const dispatch = useDispatch();
+
+  // Get the job ID using useParams
+  const { id } = useParams(); 
 
   const jobDetails = useSelector((state) => state.jobDetails);
   const { loading, error, job } = jobDetails;
 
   useEffect(() => {
-    dispatch(listJobDetails(match.params.id));
-  }, [dispatch, match]);
+    dispatch(listJobDetails(id)); // Pass the job ID from useParams
+  }, [dispatch, id]);
 
   return (
     <>
-      <Link className="btn btn-light my-3" to="/jobs">
+      <Link className="btn btn-light my-3" to="/admin/joblist">
         Go Back
       </Link>
       {loading ? (

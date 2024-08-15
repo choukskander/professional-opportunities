@@ -1,4 +1,3 @@
-// src/actions/jobActions.js
 import axios from 'axios';
 import {
   JOB_LIST_REQUEST,
@@ -7,16 +6,57 @@ import {
   JOB_DETAILS_REQUEST,
   JOB_DETAILS_SUCCESS,
   JOB_DETAILS_FAIL,
+  JOB_CREATE_REQUEST,
+  JOB_CREATE_SUCCESS,
+  JOB_CREATE_FAIL,
   JOB_UPDATE_REQUEST,
   JOB_UPDATE_SUCCESS,
   JOB_UPDATE_FAIL,
+  JOB_DELETE_REQUEST,
+  JOB_DELETE_SUCCESS,
+  JOB_DELETE_FAIL,
 } from '../constants/jobConstants';
 
-export const listJobs = () => async (dispatch) => {
+// export const listJobs = () => async (dispatch) => {
+//   try {
+//     dispatch({ type: JOB_LIST_REQUEST });
+
+//     const { data } = await axios.get('/api/jobs');
+
+//     dispatch({
+//       type: JOB_LIST_SUCCESS,
+//       payload: data,
+//     });
+//   } catch (error) {
+//     dispatch({
+//       type: JOB_LIST_FAIL,
+//       payload:
+//         error.response && error.response.data.message
+//           ? error.response.data.message
+//           : error.message,
+//     });
+//   }
+// };
+
+
+export const listJobs = (keyword = '') => async (dispatch,getState) => {
   try {
     dispatch({ type: JOB_LIST_REQUEST });
 
-    const { data } = await axios.get('/api/jobs');
+    const {
+      userLogin: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo.token}`,
+      },
+    };
+
+    const { data } = await axios.get(
+      `http://localhost:5000/api/jobs${keyword ? `?keyword=${keyword}` : ''}`, // Add the keyword to the API call
+      config
+    );
 
     dispatch({
       type: JOB_LIST_SUCCESS,
@@ -32,7 +72,6 @@ export const listJobs = () => async (dispatch) => {
     });
   }
 };
-
 export const listJobDetails = (id) => async (dispatch) => {
   try {
     dispatch({ type: JOB_DETAILS_REQUEST });
@@ -54,11 +93,44 @@ export const listJobDetails = (id) => async (dispatch) => {
   }
 };
 
+export const createJob = (job) => async (dispatch, getState) => {
+  try {
+    dispatch({ type: JOB_CREATE_REQUEST });
+
+    const {
+      userLogin: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo.token}`,
+      },
+    };
+
+    const { data } = await axios.post(
+      'http://localhost:5000/api/jobs', // Votre point d'API
+      job,
+      config
+    );
+
+    dispatch({
+      type: JOB_CREATE_SUCCESS,
+      payload: data,
+    });
+  } catch (error) {
+    dispatch({
+      type: JOB_CREATE_FAIL,
+      payload:
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message,
+    });
+  }
+};
+
 export const updateJob = (job) => async (dispatch, getState) => {
   try {
-    dispatch({
-      type: JOB_UPDATE_REQUEST,
-    });
+    dispatch({ type: JOB_UPDATE_REQUEST });
 
     const {
       userLogin: { userInfo },
@@ -80,6 +152,36 @@ export const updateJob = (job) => async (dispatch, getState) => {
   } catch (error) {
     dispatch({
       type: JOB_UPDATE_FAIL,
+      payload:
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message,
+    });
+  }
+};
+
+export const deleteJob = (id) => async (dispatch, getState) => {
+  try {
+    dispatch({ type: JOB_DELETE_REQUEST });
+
+    const {
+      userLogin: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo.token}`,
+      },
+    };
+
+    await axios.delete(`/api/jobs/${id}`, config);
+
+    dispatch({
+      type: JOB_DELETE_SUCCESS,
+    });
+  } catch (error) {
+    dispatch({
+      type: JOB_DELETE_FAIL,
       payload:
         error.response && error.response.data.message
           ? error.response.data.message
