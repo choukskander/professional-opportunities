@@ -21,10 +21,6 @@ exports.addJob = async (req, res) => {
   res.status(201).json(createdJob);
 };
 
-// exports.getJobs = async (req, res) => {
-//   const jobs = await Job.find({});
-//   res.json(jobs);
-// };
 exports.getJobs = async (req, res) => {
   const keyword = req.query.keyword ? {
     $or: [
@@ -36,7 +32,8 @@ exports.getJobs = async (req, res) => {
     ],
   } : {};
 
-  const jobs = await Job.find(keyword); 
+  const jobs = await Job.find(keyword)
+    .populate('createdBy'); // Populate createdBy field 
   res.json(jobs);
 };
 
@@ -87,3 +84,4 @@ exports.deleteJob = async (req, res) => {
     res.status(404).json({ message: 'Job not found' });
   }
 };
+
