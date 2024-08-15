@@ -1,7 +1,12 @@
 const Job = require('../models/Job');
 
 exports.addJob = async (req, res) => {
-  const { title, description, company, location, type } = req.body;
+  const { title, description, company, location, type } = req.body; // Get data from req.body
+
+  // Validate that all required fields are present
+  if (!title || !description || !company || !location || !type) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
 
   const job = new Job({
     title,
@@ -16,20 +21,25 @@ exports.addJob = async (req, res) => {
   res.status(201).json(createdJob);
 };
 
+// exports.getJobs = async (req, res) => {
+//   const jobs = await Job.find({});
+//   res.json(jobs);
+// };
 exports.getJobs = async (req, res) => {
-  const jobs = await Job.find({});
+  const keyword = req.query.keyword ? {
+    $or: [
+      { title: { $regex: req.query.keyword, $options: 'i' } },
+      { description: { $regex: req.query.keyword, $options: 'i' } },
+      { company: { $regex: req.query.keyword, $options: 'i' } },
+      { location: { $regex: req.query.keyword, $options: 'i' } },
+      { type: { $regex: req.query.keyword, $options: 'i' } },
+    ],
+  } : {};
+
+  const jobs = await Job.find(keyword); 
   res.json(jobs);
 };
 
-// exports.getJobById = async (req, res) => {
-//   const job = await Job.findById(req.params.id);
-
-//   if (job) {
-//     res.json(job);
-//   } else {
-//     res.status(404).json({ message: 'Job not found' });
-//   }
-// };
 exports.getJobById = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id); // No need to check for null here 

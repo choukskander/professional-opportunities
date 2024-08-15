@@ -4,10 +4,19 @@ const { protect, hrProtect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-router.post('/', protect, hrProtect, addJob);
+// Create a new job
+router.post('/', protect, hrProtect, addJob); 
+
+// Get all jobs
 router.get('/', getJobs);
+
+// Get a specific job by ID
 router.get('/:id', getJobById);
-router.put('/:id', protect, hrProtect, updateJob);
+
+// Update a job by ID
+router.put('/:id', protect, hrProtect, updateJob); 
+
+// Delete a job by ID
 router.delete('/:id', protect, hrProtect, deleteJob);
 
 module.exports = router;
