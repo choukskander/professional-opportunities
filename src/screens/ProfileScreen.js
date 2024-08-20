@@ -290,7 +290,7 @@ const ProfileScreen = () => {
               ></Form.Control>
             </Form.Group>
 
-            <Button type="submit" variant="primary">
+            <Button type="submit" variant="primary"className="mt-2">
               Update Profile
             </Button>
           </Col>

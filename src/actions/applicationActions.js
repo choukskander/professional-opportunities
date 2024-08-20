@@ -1,9 +1,9 @@
 // import axios from 'axios';
 // import {
-//     APPLICATION_CREATE_REQUEST,
-//     APPLICATION_CREATE_SUCCESS,
-//     APPLICATION_CREATE_FAIL,
-//   } from '../constants/applicationConstants';
+//   APPLICATION_CREATE_REQUEST,
+//   APPLICATION_CREATE_SUCCESS,
+//   APPLICATION_CREATE_FAIL,
+// } from '../constants/applicationConstants';
 
 // export const createApplication = (jobId, resume, coverLetter) => async (
 //   dispatch,
@@ -19,12 +19,17 @@
 //     const config = {
 //       headers: {
 //         Authorization: `Bearer ${userInfo.token}`,
+//         'Content-Type': 'multipart/form-data',
 //       },
 //     };
 
+//     const formData = new FormData();
+//     formData.append('resume', resume); // Add the resume file to formData
+//     formData.append('coverLetter', coverLetter);
+
 //     const { data } = await axios.post(
 //       `http://localhost:5000/api/applications/${jobId}`,
-//       { resume, coverLetter },
+//       formData,
 //       config
 //     );
 
@@ -49,10 +54,8 @@ import {
   APPLICATION_CREATE_FAIL,
 } from '../constants/applicationConstants';
 
-export const createApplication = (jobId, resume, coverLetter) => async (
-  dispatch,
-  getState
-) => {
+// Action to create a job application
+export const createApplication = (jobId, resume, coverLetter) => async (dispatch, getState) => {
   try {
     dispatch({ type: APPLICATION_CREATE_REQUEST });
 
@@ -68,7 +71,7 @@ export const createApplication = (jobId, resume, coverLetter) => async (
     };
 
     const formData = new FormData();
-    formData.append('resume', resume); // Add the resume file to formData
+    formData.append('resume', resume);
     formData.append('coverLetter', coverLetter);
 
     const { data } = await axios.post(
@@ -84,10 +87,9 @@ export const createApplication = (jobId, resume, coverLetter) => async (
   } catch (error) {
     dispatch({
       type: APPLICATION_CREATE_FAIL,
-      payload:
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message,
+      payload: error.response && error.response.data.message
+        ? error.response.data.message
+        : error.message,
     });
   }
 };
