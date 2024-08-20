@@ -44,56 +44,37 @@
 //   }
 // };
 
+// applicationController.js
 const Application = require('../models/Application');
 const Job = require('../models/Job');
 
 exports.createApplication = async (req, res) => {
   try {
-    console.log('Received request to create application');
-    
     const { jobId } = req.params;
     const { coverLetter } = req.body;
-    console.log('Job ID:', jobId);
-    console.log('Cover Letter:', coverLetter);
-    
-    // Check if file was uploaded
+
     if (!req.file) {
-      console.log('No resume uploaded');
       return res.status(400).json({ message: 'Resume is required' });
     }
-    
-    console.log('Uploaded Resume:', req.file.filename);
 
-    // Find the job by ID
     const job = await Job.findById(jobId);
     if (!job) {
-      console.log('Job not found with ID:', jobId);
       return res.status(404).json({ message: 'Job not found' });
     }
-    
-    console.log('Job found:', job);
 
-    // Create a new application
     const application = new Application({
       user: req.user._id,
       job: jobId,
-      resume: req.file.filename, // Save filename in the database
+      resume: req.file.filename,
       coverLetter,
     });
 
-    console.log('Creating new application:', application);
-
-    // Save the application to the database
     const createdApplication = await application.save();
-    console.log('Application created successfully:', createdApplication);
-    
     res.status(201).json(createdApplication);
   } catch (error) {
-    console.error('Error creating application:', error);
     res.status(500).json({ message: 'Failed to create application', error: error.message });
   }
 };
-
 
 exports.getApplications = async (req, res) => {
   const applications = await Application.find({ userId: req.user._id }).populate('jobId');
@@ -109,3 +90,45 @@ exports.getApplicationById = async (req, res) => {
     res.status(404).json({ message: 'Application not found' });
   }
 };
+
+exports.getApplicationsForJob = async (req, res) => {
+  try {
+    const jobId = req.params.jobId;
+    const job = await Job.findById(jobId);
+    if (!job || job.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const applications = await Application.find({ job: jobId }).populate('user', 'name email');
+    res.json(applications);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+exports.updateApplicationStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const { jobId, applicationId } = req.params;
+
+    const job = await Job.findById(jobId);
+    if (!job || job.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const application = await Application.findById(applicationId);
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    application.status = status;
+    const updatedApplication = await application.save();
+
+    res.json(updatedApplication);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+
+

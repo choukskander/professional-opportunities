@@ -1,5 +1,7 @@
 const Job = require('../models/Job');
 
+
+
 exports.addJob = async (req, res) => {
   const { title, description, company, location, type } = req.body; // Get data from req.body
 
@@ -84,4 +86,3 @@ exports.deleteJob = async (req, res) => {
     res.status(404).json({ message: 'Job not found' });
   }
 };
-

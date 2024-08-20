@@ -58,9 +58,12 @@ mongoose.connect(dbURI, {
 .catch((error) => console.error('MongoDB connection error:', error));
 
 app.use(cors());
-app.use(express.json());
- 
 app.use('/uploads', express.static('uploads'));
+
+
+app.use(express.json()); 
+
+
 
 app.use('/api/users', userRoutes);
 app.use('/api/jobs', jobRoutes);
