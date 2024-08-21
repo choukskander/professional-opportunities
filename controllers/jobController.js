@@ -1,6 +1,5 @@
 const Job = require('../models/Job');
-
-
+const Application = require('../models/Application');
 
 exports.addJob = async (req, res) => {
   const { title, description, company, location, type } = req.body; // Get data from req.body
@@ -77,12 +76,23 @@ exports.updateJob = async (req, res) => {
 };
 
 exports.deleteJob = async (req, res) => {
-  const job = await Job.findById(req.params.id);
+  try {
+    const job = await Job.findById(req.params.id);
 
-  if (job) {
-    await job.remove();
-    res.json({ message: 'Job removed' });
-  } else {
-    res.status(404).json({ message: 'Job not found' });
+    if (job) {
+      // Suppression des applications associées
+      await Application.deleteMany({ job: req.params.id });
+
+      // Suppression du job en utilisant findByIdAndDelete
+      await Job.findByIdAndDelete(req.params.id);
+
+      res.json({ message: 'Job et applications associées supprimés' });
+    } else {
+      res.status(404).json({ message: 'Job non trouvé' });
+    }
+  } catch (error) {
+    console.error('Erreur lors de la suppression du job:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
   }
 };
+
