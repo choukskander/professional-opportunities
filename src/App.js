@@ -14,6 +14,7 @@ import ProfileViewScreen from './screens/ProfileViewScreen';
 import NotFound from './components/NotFound';
 import JobCreateScreen from './screens/JobCreateScreen';
 import ApplicantsScreen from './screens/ApplicantsScreen';
+import JitsiMeetingPage from './screens/JitsiMeetingPage';
 
 const App = () => {
 
@@ -34,6 +35,7 @@ const App = () => {
             <Route path="/admin/job/create" element={<JobCreateScreen />} />
             <Route path="/admin/jobs/:id/applicants" component={ApplicantsScreen} />
             <Route path="/jobs" element={<JobListScreen />} /> {/* Pass keyword prop */}
+            <Route path="/meeting" element={<JitsiMeetingPage />} />
             <Route path="/" element={<HomeScreen />} />
             <Route path="*" element={<NotFound/>} />
           </Routes>

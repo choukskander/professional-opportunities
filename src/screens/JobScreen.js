@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Row, Col, Card, Button, Container, Form, Alert } from 'react-bootstrap';
 import { listJobDetails } from '../actions/jobActions';
@@ -9,6 +9,7 @@ import ApplicantsScreen from './ApplicantsScreen'; // Import ApplicantsScreen
 
 const JobScreen = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate(); // Use navigate for routing
   const { id: jobId } = useParams();
 
   const jobDetails = useSelector((state) => state.jobDetails);
@@ -57,6 +58,10 @@ const JobScreen = () => {
         message: 'Error submitting application. Please try again.',
       });
     }
+  };
+
+  const scheduleMeeting = (userName, roomName) => {
+    navigate('/meeting', { state: { userName, roomName } });
   };
 
   return (
@@ -120,8 +125,16 @@ const JobScreen = () => {
               </Card>
             </Col>
           ) : (
-            // Render ApplicantsScreen for HR users
-            <ApplicantsScreen jobId={jobId} />
+            <>
+              <ApplicantsScreen jobId={jobId} />
+              {/* Schedule Meeting Button for HR */}
+              <Button 
+                className="schedule-meeting-button mt-3" 
+                onClick={() => scheduleMeeting(userInfo.name, `Room-${jobId}`)}
+              >
+                Schedule Meeting
+              </Button>
+            </>
           )}
         </Row>
       )}
