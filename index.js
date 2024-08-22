@@ -69,4 +69,5 @@ app.use('/api/users', userRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
 
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
