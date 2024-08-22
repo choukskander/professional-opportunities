@@ -44,12 +44,14 @@ const ApplicantsScreen = ({ jobId }) => {
               <Card.Text>
                 <strong>Email:</strong> {applicant.user.email}
               </Card.Text>
+      
               <Card.Text>
-                <strong>Resume:</strong> 
-                <a href={`/uploads/${applicant.resume}`} target="_blank" rel="noopener noreferrer">
-                  View Resume
-                </a>
-              </Card.Text>
+  <strong>Resume:</strong>
+  <a href={`http://localhost:5000/uploads/${applicant.resume}`} target="_blank" rel="noopener noreferrer">
+    View Resume
+  </a>
+</Card.Text>
+
               <Card.Text>
                 <strong>Cover Letter:</strong> {applicant.coverLetter}
               </Card.Text>
