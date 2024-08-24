@@ -95,4 +95,15 @@ exports.deleteJob = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 };
+// controllers/jobController.js
+
+exports.getLatestJobs = async (req, res) => {
+  try {    
+    const jobs = await Job.find().sort({ createdAt: -1 }).limit(5);
+    res.json(jobs);
+  } catch (error) {
+    console.error('Error fetching latest jobs:', error);
+    res.status(500).json({ message: 'Failed to fetch latest jobs' });
+  }
+};
 
