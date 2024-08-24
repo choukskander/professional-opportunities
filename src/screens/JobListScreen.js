@@ -7,7 +7,6 @@ import Message from '../components/Message';
 import Loader from '../components/Loader';
 import Paginate from '../components/Paginate';
 
-
 const JobListScreen = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -17,11 +16,12 @@ const JobListScreen = () => {
   const { userInfo } = userLogin;
 
   const jobList = useSelector((state) => state.jobList);
-  const { loading, error, jobs, page, pages } = jobList;
+  const { loading, error, jobs: jobsFromRedux, page, pages } = jobList;
 
   const keyword = location.search ? location.search.split('=')[1] : '';
 
-  const [isDeleting, setIsDeleting] = useState(false); // Track if deletion is in progress
+  const [jobs, setJobs] = useState([]);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchJobs = useCallback(() => {
     if (!userInfo) {
@@ -29,11 +29,15 @@ const JobListScreen = () => {
     } else {
       dispatch(listJobs(keyword));
     }
-  }, [dispatch, navigate, keyword, userInfo]); // Dependencies for fetchJobs
+  }, [dispatch, navigate, keyword, userInfo]);
 
   useEffect(() => {
-    fetchJobs(); // Call the memoized fetchJobs function
+    fetchJobs();
   }, [fetchJobs]);
+
+  useEffect(() => {
+    setJobs(jobsFromRedux); // Update local jobs state when jobsFromRedux changes
+  }, [jobsFromRedux]);
 
   const createJobHandler = () => {
     navigate('/admin/job/create');
@@ -41,17 +45,15 @@ const JobListScreen = () => {
 
   const deleteHandler = async (id) => {
     if (window.confirm('Are you sure you want to delete this job and its applications?')) {
-      setIsDeleting(true); // Start the deletion process
+      setIsDeleting(true);
       try {
         await dispatch(deleteJob(id));
-        // If the backend confirms the deletion (success), do nothing 
-        // (the UI is already updated)
+        // Optimistically update the local state to remove the deleted job
+        setJobs(jobs.filter((job) => job._id !== id));
       } catch (error) {
-        // Handle failure, update the UI if necessary
         console.error('Error deleting job:', error);
-        // You might want to add a message here 
       } finally {
-        setIsDeleting(false); // End the deletion process
+        setIsDeleting(false);
       }
     }
   };
@@ -69,7 +71,7 @@ const JobListScreen = () => {
           <Button
             variant="danger"
             size="sm"
-            disabled={isDeleting} // Disable the button while deleting
+            disabled={isDeleting}
             onClick={() => deleteHandler(job._id)}
           >
             Delete
@@ -106,8 +108,7 @@ const JobListScreen = () => {
               </tr>
             </thead>
             <tbody>
-              {/* Optimistically remove the job from the UI */}
-              {jobs.filter((job) => job._id !== isDeleting).map((job) => (
+              {jobs.map((job) => (
                 <tr key={job._id}>
                   <td>{job.title}</td>
                   <td>{job.company}</td>
