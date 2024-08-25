@@ -15,6 +15,7 @@ import NotFound from './components/NotFound';
 import JobCreateScreen from './screens/JobCreateScreen';
 import ApplicantsScreen from './screens/ApplicantsScreen';
 import JitsiMeetingPage from './screens/JitsiMeetingPage';
+import JobApplicationStatistics from './screens/JobApplicationStatistics';
 
 const App = () => {
 
@@ -32,6 +33,7 @@ const App = () => {
             <Route path="/admin/job/:id/edit" element={<JobEditScreen />} />
             <Route path="/admin/job/:id" element={<JobScreen />} />
             <Route path="/admin/joblist" element={<JobListScreen />} />
+            <Route path="/admin/JobApplicationStatistics" element={<JobApplicationStatistics />} />
             <Route path="/admin/job/create" element={<JobCreateScreen />} />
             <Route path="/admin/jobs/:id/applicants" component={ApplicantsScreen} />
             <Route path="/jobs" element={<JobListScreen />} /> {/* Pass keyword prop */}

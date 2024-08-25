@@ -48,7 +48,7 @@ const Header = () => {
                 </Nav.Link>
               </LinkContainer>
               {userInfo && userInfo.role === 'hr' && (
-                <LinkContainer to="/admin/joblist">
+                <LinkContainer to="/admin/JobApplicationStatistics">
                   <Nav.Link>Admin Panel</Nav.Link>
                 </LinkContainer>
               )}

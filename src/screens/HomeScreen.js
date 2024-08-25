@@ -2,10 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { Row, Col, Card } from 'react-bootstrap';
 import axios from 'axios';
 
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
 const HomeScreen = () => {
   const [latestJobs, setLatestJobs] = useState([]);
-
+  const userLogin = useSelector((state) => state.userLogin);
+  const { userInfo } = userLogin;
+  const navigate = useNavigate();
   useEffect(() => {
+    if (!userInfo) {
+      navigate('/login');
+    } else {
     const fetchLatestJobs = async () => {
       try {
         const { data } = await axios.get('/api/jobs/latest'); // Ensure the endpoint is correct
@@ -16,7 +24,8 @@ const HomeScreen = () => {
     };
   
     fetchLatestJobs();
-  }, []);
+    
+  }}, [userInfo, navigate]);
    // Empty dependency array ensures this runs once when the component mounts
 
   return (
