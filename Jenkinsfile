@@ -34,6 +34,7 @@ steps{
 script {
 sh('npm install terser')
 sh('npm run build-dev')
+echo'npm run build-dev'
 }
 }
 }
