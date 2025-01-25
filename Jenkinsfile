@@ -4,7 +4,7 @@ agent any
 environment {
 registryCredentials = "nexus"
 registry = "192.168.1.8:8081"
-}
+} 
 
 stages {
 stage('Install dependencies') {
